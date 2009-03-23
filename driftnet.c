@@ -636,13 +636,16 @@ int main(int argc, char *argv[]) {
         }
     } else {
         /* need to make a temporary directory. */
-	const char *tmp;
-	char *template;
+	char *tmp;
+	char template[PATH_MAX+11];
 
-	tmp = g_get_tmp_dir();
-	template = g_build_filename(tmp, "drifnet-XXXXXX", NULL);
-	tmpdir = mkdtemp (template);
-	/* Paul: not sure why but this breaks tmpdir: g_free (template); */
+	if (!(tmp = getenv("TMPDIR")))
+	    if (!(tmp = getenv("TEMP")))
+		if (!(tmp = getenv("TMP")))
+		    tmp = "/tmp";
+
+	snprintf(template, PATH_MAX+11, "%s/drifnet-XXXXXX", tmp);
+	tmpdir = mkdtemp(template);
 	if (!tmpdir) {
 	    perror(PROGNAME": mkdtemp");
 	    return -1;
