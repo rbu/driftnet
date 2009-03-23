@@ -635,10 +635,15 @@ int main(int argc, char *argv[]) {
     } else {
         /* need to make a temporary directory. */
         for (;;) {
-            tmpdir = strdup(tmpnam(NULL));  /* may generate a warning, but this is safe because we create a directory not a file */
-            if (mkdir(tmpdir, 0700) == 0)
-                break;
-            xfree(tmpdir);
+            const char *tmp;
+	    char *template;
+
+	    tmp = g_get_tmp_dir();
+	    template = g_build_filename(tmp, "drifnet-XXXXXX", NULL);
+	    tmpdir = mkdtemp (template);
+	    /* Paul: not sure why but this breaks tmpdir: g_free (template); */
+	    if (tmpdir)
+		break;
         }
     }
 
