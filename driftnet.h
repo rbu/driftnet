@@ -28,7 +28,7 @@
 /* alloc_struct S P
  * Make P point to a new struct S, initialised as if in static storage (like
  * = {0}). */
-#define alloc_struct(S, p)  do { struct S as__z = {0}; p = xmalloc(sizeof *p); *p = as__z; } while (0)
+#define alloc_struct(S, p) do { struct S as__z = {0}; p = xmalloc(sizeof *p); *p = as__z; } while (0)
 
 /* enum mediatype:
  * Bit field to characterise types of media which we can extract. */

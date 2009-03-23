@@ -10,6 +10,7 @@
 static const char rcsid[] = "$Id: util.c,v 1.1 2003/08/25 12:24:08 chris Exp $";
 
 #include <stdlib.h>
+#include <string.h>
 
 #include "driftnet.h"
 
@@ -63,7 +64,7 @@ unsigned char *memstr(const unsigned char *haystack, const size_t hlen,
                              const unsigned char *needle, const size_t nlen) {
     int skip[256], k;
 
-    if (nlen == 0) return (char*)haystack;
+    if (nlen == 0) return (unsigned char*)haystack;
 
     /* Set up the finite state machine we use. */
     for (k = 0; k < 256; ++k) skip[k] = nlen;
