@@ -39,6 +39,16 @@ void dispatch_http_req(const char *mname, const unsigned char *data, const size_
 /* playaudio.c */
 void mpeg_submit_chunk(const unsigned char *data, const size_t len);
 
+int is_driftnet_file(char *filename) {
+    if (strncmp(filename, "driftnet-", 9) != 0) return 0;
+    char *p = strrchr(filename, '.');
+    if (p == 0) return 0;
+    return (strcmp(p, ".jpeg") == 0 ||
+           strcmp(p, ".gif") == 0 ||
+           strcmp(p, ".png") == 0 ||
+           strcmp(p, ".mp3") == 0);
+}
+
 /* count_temporary_files:
  * How many of our files remain in the temporary directory? We do this a
  * maximum of once every five seconds. */
