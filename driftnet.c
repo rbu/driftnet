@@ -632,17 +632,17 @@ int main(int argc, char *argv[]) {
         }
     } else {
         /* need to make a temporary directory. */
-        for (;;) {
-            const char *tmp;
-	    char *template;
+	const char *tmp;
+	char *template;
 
-	    tmp = g_get_tmp_dir();
-	    template = g_build_filename(tmp, "drifnet-XXXXXX", NULL);
-	    tmpdir = mkdtemp (template);
-	    /* Paul: not sure why but this breaks tmpdir: g_free (template); */
-	    if (tmpdir)
-		break;
-        }
+	tmp = g_get_tmp_dir();
+	template = g_build_filename(tmp, "drifnet-XXXXXX", NULL);
+	tmpdir = mkdtemp (template);
+	/* Paul: not sure why but this breaks tmpdir: g_free (template); */
+	if (!tmpdir) {
+	    perror(PROGNAME": mkdtemp");
+	    return -1;
+	}
     }
 
     if (verbose) 
@@ -704,7 +704,7 @@ int main(int argc, char *argv[]) {
                 return -1;
 
             case -1:
-                perror(PROGNAME "fork");
+                perror(PROGNAME": fork");
                 return -1;
 
             default:
