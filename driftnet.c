@@ -803,8 +803,8 @@ int main(int argc, char *argv[]) {
     for (C = slots; C < slots + slotsalloc; ++C)
         if (*C) connection_delete(*C);
     xfree(slots);
-    if (!tmpdir_specified)
-	xfree(tmpdir);
+ //   if (!tmpdir_specified)
+ //	xfree(tmpdir);
 
     return 0;
 }
