@@ -247,7 +247,14 @@ int get_link_level_hdr_length(int type)
         case DLT_IEEE802_11:
             return 32; /* 20030606 email from Nikhil Bobb */ /*44; */
 #endif
-            
+
+#ifdef DLT_IEEE802_11_RADIO           /* radiotap (atheros monitoring) */
+        case DLT_IEEE802_11_RADIO:
+            /* actually, the header size can vary, this is only a guess;
+             * we have to look at each packet
+	     */
+            return 0x3F;
+#endif
         default:;
     }
     fprintf(stderr, PROGNAME": unknown data link type %d", type);
