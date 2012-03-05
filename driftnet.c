@@ -183,7 +183,10 @@ void dump_data(FILE *fp, const unsigned char *data, const unsigned int len) {
  * type. This is based on init_linktype in the libpcap distribution; I
  * don't know why libpcap doesn't expose the information directly. The
  * constants here are taken from 0.6.2, but I've added #ifdefs in the hope
- * that it will still compile with earlier versions. */
+ * that it will still compile with earlier versions.
+ * The return value _must_ be checked by the caller, since -1 will be returned for
+ * unknown link types!
+ */
 int get_link_level_hdr_length(int type)
 {
     switch (type) {
@@ -250,15 +253,29 @@ int get_link_level_hdr_length(int type)
 
 #ifdef DLT_IEEE802_11_RADIO           /* radiotap (atheros monitoring) */
         case DLT_IEEE802_11_RADIO:
-            /* actually, the header size can vary, this is only a guess;
-             * we have to look at each packet
-	     */
-            return 0x3F;
+            /* actually, the header size can vary from packet to packet;
+             * we have to look at each packet separately
+             */
+            return 0;
 #endif
         default:;
     }
     fprintf(stderr, PROGNAME": unknown data link type %d", type);
-    exit(1);
+    return -1;
+}
+
+int get_frame_link_level_hdr_length(int type, const u_char *pkt) {
+	switch(type) {
+#ifdef DLT_IEEE802_11_RADIO
+		case DLT_IEEE802_11_RADIO:
+			/* determine the length of the variable header
+			 * and add the underlying part (we assume 802.11 for now)
+			 */
+			return *(uint16_t*)(pkt+2)+2+get_link_level_hdr_length(DLT_IEEE802_11);
+#endif
+		default:
+			return get_link_level_hdr_length(type);
+	};
 }
 
 
@@ -375,17 +392,23 @@ char *connection_string(const struct in_addr s, const unsigned short s_port, con
 
 /* process_packet:
  * Callback which processes a packet captured by libpcap. */
-int pkt_offset; /* offset of IP packet within wire packet */
 
 void process_packet(u_char *user, const struct pcap_pkthdr *hdr, const u_char *pkt) {
     struct ip ip;
     struct tcphdr tcp;
     struct in_addr s, d;
     int off, len, delta;
+    int pkt_offset;
     connection *C, c;
 
     if (verbose)
         fprintf(stderr, ".");
+
+    /* get the individual packet offset */
+    pkt_offset = get_frame_link_level_hdr_length( pcap_datalink(pc), pkt );
+    if (pkt_offset < 0) { /* something strange happened, we cannot handle this packet */
+        return;
+    }
 
     memcpy(&ip, pkt + pkt_offset, sizeof(ip));
     memcpy(&s, &ip.ip_src, sizeof(ip.ip_src));
@@ -767,12 +790,6 @@ int main(int argc, char *argv[]) {
             return -1;
         }
     }
-
-    /* Figure out the offset from the start of a returned packet to the data in
-     * it. */
-    pkt_offset = get_link_level_hdr_length(pcap_datalink(pc));
-    if (verbose)
-        fprintf(stderr, PROGNAME": link-level header length is %d bytes\n", pkt_offset);
 
     slotsused = 0;
     slotsalloc = 64;
